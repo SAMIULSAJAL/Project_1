@@ -1,0 +1,45 @@
+# REAX potential for AuO system
+# .....
+
+units		real	
+dimension	3
+boundary	p p p
+atom_style	charge
+read_data	data.32al
+
+pair_style	reax/c lmp_control
+pair_coeff	* * ffield.reax.alo O H Al O
+
+neighbor	2 bin
+neigh_modify	every 10 delay 0 check no
+
+
+thermo		30
+thermo_style	custom step temp vol press density pe ke etotal enthalpy evdwl ecoul epair
+
+
+compute		peratom all pe/atom
+
+dump		1 all custom 500 dump1.reax.cfg id type xs ys zs c_peratom
+fix		1 all nvt temp 300 300 100
+fix             2 all qeq/reax 1 0.0 10.0 1e-6 reax/c
+timestep	.20
+run		1000
+unfix		1
+
+
+timestep	0.20
+fix		3 all npt temp 300 300 100 iso 1 1 1000
+run		2150000
+unfix		3
+write_restart	restart3.32al
+undump		1
+
+
+dump		2 all custom 500 dump2.reax.cfg id type xs ys zs c_peratom
+timestep	0.20
+fix		4 all npt temp 300 300 100 iso 1 1 1000
+run		2000000
+unfix		4
+write_restart	restart4.32al
+
